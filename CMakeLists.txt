@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(SmartMultimediaPlayer VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick Core Quick QuickControls2 Svg Multimedia Bluetooth)
 
@@ -10,6 +11,7 @@ qt_standard_project_setup(REQUIRES 6.5)
 
 qt_add_executable(appSmartMultimediaPlayer
     main.cpp
+    Icon.qrc
 )
 
 qt_add_qml_module(appSmartMultimediaPlayer
@@ -19,8 +21,9 @@ qt_add_qml_module(appSmartMultimediaPlayer
         Main.qml
         SOURCES bluetoothdevicemanager.h bluetoothdevicemanager.cpp
         SOURCES mediaengine.h mediaengine.cpp
-        QML_FILES ControlBar.qml
-        QML_FILES BluetoothDialog.qml
+        QML_FILES
+        QML_FILES
+        RESOURCES Icon.qrc
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
