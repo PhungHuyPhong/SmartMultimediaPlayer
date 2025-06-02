@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
+import QtQuick.Dialogs
 import QtMultimedia
 
 Window {
@@ -10,7 +11,75 @@ Window {
     visible: true
     title: qsTr("Smart Multimedia")
 
+    FileDialog {
+            id: fileDialog
+            title: "Select Media Files"
+            nameFilters: [ "Audio or Video Files (*.mp3 *.wav *.mp4 *.mkv)", "All Files (*)" ]
+            onAccepted: {
+                    for (var i = 0; i < fileDialog.selectedFiles.length; ++i) {
+                        var url = Qt.resolvedUrl(fileDialog.selectedFiles[i]);
+                        mEngine.addToPlaylist(url);
+                    }
+            }
+        }
 
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 10
+            spacing: 10
+
+            VideoOutput {
+                id: videoOutputId
+                Layout.fillWidth: true
+                Layout.preferredHeight: 300
+            }
+
+
+            RowLayout {
+                spacing: 10
+                Button {
+                    text: "Add Files"
+                    onClicked: fileDialog.open()
+                }
+                Button { text: "Prev"; onClicked: mEngine.previous() }
+                Button { text: mEngine.playing ? "Pause" : "Play"; onClicked: mEngine.playPause() }
+                Button { text: "Next"; onClicked: mEngine.next() }
+                Button { text: mEngine.muted ? "Unmute" : "Mute"; onClicked: mEngine.toggleMute() }
+            }
+
+            ListView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                model: mEngine.playlist
+                delegate: Text { text: modelData }
+            }
+
+            RowLayout {
+                spacing: 10
+                Label { text: Qt.formatTime(new Date(mEngine.position), "mm:ss") }
+                Slider {
+                    Layout.fillWidth: true
+                    from: 0; to: mEngine.duration
+                    value: mEngine.position
+                    onMoved: mEngine.setPosition(value)
+                }
+                Label { text: Qt.formatTime(new Date(mEngine.duration), "mm:ss") }
+            }
+
+            RowLayout {
+                spacing: 10
+                Label { text: "Volume" }
+                Slider {
+                    from: 0; to: 100
+                    value: mEngine.volume
+                    onValueChanged: {
+                            if (pressed) {
+                                mEngine.setVolume(value)
+                            }
+                    }
+                }
+            }
+        }
 
 
 

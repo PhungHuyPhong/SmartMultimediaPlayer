@@ -18,6 +18,9 @@ qt_add_qml_module(appSmartMultimediaPlayer
     QML_FILES
         Main.qml
         SOURCES bluetoothdevicemanager.h bluetoothdevicemanager.cpp
+        SOURCES mediaengine.h mediaengine.cpp
+        QML_FILES ControlBar.qml
+        QML_FILES BluetoothDialog.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
