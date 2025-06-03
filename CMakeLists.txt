@@ -24,6 +24,7 @@ qt_add_qml_module(appSmartMultimediaPlayer
         QML_FILES
         QML_FILES
         RESOURCES Icon.qrc
+        RESOURCES README.md
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

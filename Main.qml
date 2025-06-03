@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import QtMultimedia
 import QtQuick.Dialogs
 
-ApplicationWindow {
+Window {
     id: mainWindow
     visible: true
     width: 800
@@ -115,91 +115,83 @@ ApplicationWindow {
 
     ColumnLayout {
         anchors.fill: parent
+        anchors.leftMargin: 0
+        anchors.rightMargin: 0
+        anchors.topMargin: 0
+        anchors.bottomMargin: 0
         spacing: 0
 
         // Top bar
-        RowLayout {
-            width: parent.width
+        Rectangle {
+            id: topBar
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
             height: 40
-            Rectangle {
-                color: "#333"
+            color: "#333"
+            RowLayout {
                 anchors.fill: parent
-                RowLayout {
-                    anchors.fill: parent
-                    spacing: 20
-                    Button { text: "Open"; onClicked: fileDialog.open() }
-                    Label {
-                        text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
-                        color: "white"
-                        Layout.alignment: Qt.AlignHCenter
-                    }
-                    Button { text: "Bluetooth"; onClicked: bluetoothDialog.open() }
+                spacing: 20
+                Button {
+                    text: "Open"
+                    onClicked: fileDialog.open()
                 }
+                Label {
+                    text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.fillHeight: false
+                    Layout.fillWidth: true
+                    color: "white"
+                    Layout.alignment: Qt.AlignCenter
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    text: "Bluetooth"
+                    rightPadding: 8
+                    onClicked: bluetoothDialog.open()
+                }
+            }
+        }
+        //Title
+        Rectangle{
+            id: title
+            anchors.top: topBar.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            color: "#4cd137"
+            height: 30
+            Label {
+                text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+                horizontalAlignment: Text.AlignHCenter
+                Layout.fillHeight: false
+                Layout.fillWidth: true
+                color: "white"
+                Layout.alignment: Qt.AlignCenter
             }
         }
 
         // Video view
         VideoOutput {
             id: videoOutputId
-            width: parent.width
-            height: 300
+            anchors.top: title.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 390
             fillMode: VideoOutput.PreserveAspectFit
-            visible: mEngine.hasVideo
-        }
-
-        // Playback controls
-        RowLayout {
-            spacing: 10
-          //  padding: 10
-            Button { text: "Add Files"; onClicked: fileDialog.open() }
-            RoundButton {
-                id: prevButton
-                width: 100
-                height: 100
-                radius: width/2
-                padding: 0
-                palette.button: "#7f8fa6"
-                icon.source: "qrc:/Icons/icons/previous.svg"
-                // contentItem: Image {
-                //     source: "qrc:/Icons/icons/previous.svg"
-                //     anchors.centerIn: parent
-                //     // width: parent.width * 0.6
-                //     // height: parent.height * 0.6
-                //    // fillMode: Image.PreserveAspectFit
-                // }
-                onClicked: mEngine.previous()
-
-            }
-            RoundButton {
-                id: playButton
-                palette.button: "#7f8fa6"
-                icon.source: mEngine.playing ? "qrc:/Icons/icons/pause.svg" : "qrc:/Icons/icons/play.svg"
-                onClicked: mEngine.playPause()
-            }
-            RoundButton {
-                id: nextButton
-                palette.button: "#7f8fa6"
-                icon.source: "qrc:/Icons/icons/next.svg"
-                onClicked: mEngine.next()
-            }
-        }
-
-        // Playlist
-        ListView {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 100
-            model: mEngine.playlist
-            delegate: Text {
-                text: modelData
-                font.pixelSize: 14
-                color: "black"
-            }
+            // visible: mEngine.hasVideo
         }
 
         // Progress bar
         RowLayout {
+            id: progressBar
+            anchors.top: videoOutputId.bottom
+            anchors.topMargin: 10
+            anchors.horizontalCenter: parent.horizontalCenter
             spacing: 10
-          //  padding: 10
             Label { text: Qt.formatTime(new Date(mEngine.position), "mm:ss") }
             Slider {
                 Layout.fillWidth: true
@@ -207,25 +199,92 @@ ApplicationWindow {
                 value: mEngine.position
                 onMoved: mEngine.setPosition(value)
             }
-            Label { text: Qt.formatTime(new Date(mEngine.duration), "mm:ss") }
+            Label {
+                text: Qt.formatTime(new Date(mEngine.duration), "mm:ss")
+            }
         }
-
-        // Volume
+        // Playback controls
         RowLayout {
+            id: playback
+            anchors.top: progressBar.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
             spacing: 10
-          //  padding: 10
-            Button {
-                id: muteButton
-                icon.source: mEngine.muted ? "qrc:/Icons/icons/muted.svg" : "qrc:/Icons/icons/volume.svg"
-                onClicked: mEngine.toggleMute()
+            RoundButton {
+                id: prevButton
+                implicitWidth: 60
+                implicitHeight: 60
+                radius: 30
+                palette.button: "#7f8fa6"
+                contentItem: Image {
+                    source: "qrc:/Icons/icons/previous.svg"
+                    anchors.centerIn: parent
+                    width: parent.implicitWidth * 0.5
+                    height: parent.implicitHeight * 0.5
+                    //fillMode: Image.PreserveAspectFit
+                }
+                onClicked: mEngine.previous()
             }
-            Slider {
-                from: 0; to: 100
-                value: mEngine.volume
-                onMoved: mEngine.setVolume(value)
-            }
+            RoundButton {
+                    id: playButton
+                    Layout.preferredWidth: 80
+                    Layout.preferredHeight: 80
+                    radius: 40
+                    palette.button: "#7f8fa6"
+                    contentItem: Image {
+                        source: mEngine.playing ? "qrc:/Icons/icons/pause.svg" : "qrc:/Icons/icons/play.svg"
+                        anchors.centerIn: parent
+                        width: parent.implicitWidth * 0.5
+                        height: parent.implicitHeight * 0.5
+                        //fillMode: Image.PreserveAspectFit
+                    }
+                    onClicked: mEngine.playPause()
+                }
+
+                RoundButton {
+                    id: nextButton
+                    Layout.preferredWidth: 60
+                    Layout.preferredHeight: 60
+                    radius: 30
+                    palette.button: "#7f8fa6"
+                    contentItem: Image {
+                        source: "qrc:/Icons/icons/next.svg"
+                        anchors.centerIn: parent
+                        width: parent.implicitWidth * 0.5
+                        height: parent.implicitHeight * 0.5
+                        //fillMode: Image.PreserveAspectFit
+                    }
+                    onClicked: mEngine.next()
+                }
+                // RoundButton {
+                //     id: muteButton
+                //     Layout.preferredWidth: 60
+                //     Layout.preferredHeight: 60
+                //     radius: 30
+                //     icon.source: mEngine.muted ? "qrc:/Icons/icons/muted.svg" : "qrc:/Icons/icons/volume.svg"
+                //     onClicked: mEngine.toggleMute()
+                // }
+                // Slider {
+                //     from: 0; to: 100
+                //     value: mEngine.volume
+                //     onMoved: mEngine.setVolume(value)
+                // }
         }
     }
+
+    // Playlist
+        // ListView {
+        //     Layout.fillWidth: true
+        //     Layout.preferredHeight: 100
+        //     model: mEngine.playlist
+        //     delegate: Text {
+        //         text: modelData
+        //         font.pixelSize: 14
+        //         color: "black"
+        //     }
+        // }
+
+
+
 
     Timer {
         interval: 1000
