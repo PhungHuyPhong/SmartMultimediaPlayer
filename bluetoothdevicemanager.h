@@ -7,6 +7,10 @@
 #include <QtBluetooth/QBluetoothLocalDevice>
 #include <QtQml>
 #include <QQmlEngine>
+#include <QDebug>
+#include <QProcess>
+#include <QTimer>
+#include <QRegularExpression>
 
 class BluetoothDeviceManager : public QObject
 {

@@ -23,6 +23,18 @@ Window {
         }
     }
 
+    FolderDialog {
+        id: folderDialog
+        title: "Select Playlist Folder"
+        onAccepted: {
+            console.log("Selected folder:", folderDialog.selectedFolder.toString())
+            if (folderDialog.selectedFolder) {
+                var url = Qt.resolvedUrl(folderDialog.selectedFolder)
+                mEngine.addToPlaylist(url)
+            }
+        }
+    }
+
     Dialog {
         id: bluetoothDialog
         title: "Bluetooth Devices"
@@ -132,17 +144,38 @@ Window {
             RowLayout {
                 anchors.fill: parent
                 spacing: 20
+                Menu {
+                    id: openMenu
+                    MenuItem {
+                        text: "Open Files"
+                        onTriggered: fileDialog.open()
+                    }
+                    MenuItem {
+                        text: "Open Folder"
+                        onTriggered: folderDialog.open()
+                    }
+                }
                 Button {
                     text: "Open"
-                    onClicked: fileDialog.open()
+                    onClicked: openMenu.open()
                 }
                 Label {
+                    id: timeLabel
                     text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
                     horizontalAlignment: Text.AlignHCenter
                     Layout.fillHeight: false
                     Layout.fillWidth: true
                     color: "white"
                     Layout.alignment: Qt.AlignCenter
+
+                    Timer {
+                           interval: 1000
+                           running: true
+                           repeat: true
+                           onTriggered: {
+                               timeLabel.text = Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+                           }
+                    }
                 }
 
                 Item {
@@ -158,14 +191,14 @@ Window {
         }
         //Title
         Rectangle{
-            id: title
+            id: mediaTitle
             anchors.top: topBar.bottom
             anchors.left: parent.left
             anchors.right: parent.right
             color: "#4cd137"
             height: 30
             Label {
-                text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+                text: mEngine.title
                 horizontalAlignment: Text.AlignHCenter
                 Layout.fillHeight: false
                 Layout.fillWidth: true
@@ -177,7 +210,7 @@ Window {
         // Video view
         VideoOutput {
             id: videoOutputId
-            anchors.top: title.bottom
+            anchors.top: mediaTitle.bottom
             anchors.left: parent.left
             anchors.right: parent.right
             height: 390
@@ -210,6 +243,21 @@ Window {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 10
             RoundButton {
+                id: shuffleButton
+                implicitWidth: 60
+                implicitHeight: 60
+                radius: 30
+                palette.button: "#7f8fa6"
+                contentItem: Image {
+                    source: mEngine.shuffle ? "qrc:/Icons/icons/shuffle.svg" : "qrc:/Icons/icons/noshuffle.svg"
+                    anchors.centerIn: parent
+                    width: parent.implicitWidth * 0.5
+                    height: parent.implicitHeight * 0.5
+                }
+                onClicked: mEngine.setShuffle(!mEngine.shuffle)
+            }
+
+            RoundButton {
                 id: prevButton
                 implicitWidth: 60
                 implicitHeight: 60
@@ -220,7 +268,6 @@ Window {
                     anchors.centerIn: parent
                     width: parent.implicitWidth * 0.5
                     height: parent.implicitHeight * 0.5
-                    //fillMode: Image.PreserveAspectFit
                 }
                 onClicked: mEngine.previous()
             }
@@ -235,26 +282,50 @@ Window {
                         anchors.centerIn: parent
                         width: parent.implicitWidth * 0.5
                         height: parent.implicitHeight * 0.5
-                        //fillMode: Image.PreserveAspectFit
                     }
                     onClicked: mEngine.playPause()
+            }
+            RoundButton {
+                id: nextButton
+                Layout.preferredWidth: 60
+                Layout.preferredHeight: 60
+                radius: 30
+                palette.button: "#7f8fa6"
+                contentItem: Image {
+                    source: "qrc:/Icons/icons/next.svg"
+                    anchors.centerIn: parent
+                    width: parent.implicitWidth * 0.5
+                    height: parent.implicitHeight * 0.5
                 }
-
-                RoundButton {
-                    id: nextButton
-                    Layout.preferredWidth: 60
-                    Layout.preferredHeight: 60
-                    radius: 30
-                    palette.button: "#7f8fa6"
-                    contentItem: Image {
-                        source: "qrc:/Icons/icons/next.svg"
-                        anchors.centerIn: parent
-                        width: parent.implicitWidth * 0.5
-                        height: parent.implicitHeight * 0.5
-                        //fillMode: Image.PreserveAspectFit
+                onClicked: mEngine.next()
+            }
+            RoundButton {
+                id: loopButton
+                implicitWidth: 60
+                implicitHeight: 60
+                radius: 30
+                palette.button: "#7f8fa6"
+                contentItem: Image {
+                    source: mEngine.loopOne ? "qrc:/Icons/icons/loop1.svg" :
+                                              (mEngine.loopAll ? "qrc:/Icons/icons/loop.svg" : "qrc:/Icons/icons/noloop.svg")
+                    anchors.centerIn: parent
+                    width: parent.implicitWidth * 0.5
+                    height: parent.implicitHeight * 0.5
+                }
+                onClicked: {
+                    if (!mEngine.loopAll && !mEngine.loopOne) {
+                        mEngine.setLoopAll(true)
+                        mEngine.setLoopOne(false)
+                    } else if (mEngine.loopAll && !mEngine.loopOne) {
+                        mEngine.setLoopAll(false)
+                        mEngine.setLoopOne(true)
+                    } else {
+                        mEngine.setLoopAll(false)
+                        mEngine.setLoopOne(false)
                     }
-                    onClicked: mEngine.next()
                 }
+            }
+        }
                 // RoundButton {
                 //     id: muteButton
                 //     Layout.preferredWidth: 60
@@ -268,7 +339,7 @@ Window {
                 //     value: mEngine.volume
                 //     onMoved: mEngine.setVolume(value)
                 // }
-        }
+        //}
     }
 
     // Playlist

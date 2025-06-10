@@ -6,5 +6,10 @@
         <file>icons/pause.svg</file>
         <file>icons/next.svg</file>
         <file>icons/muted.svg</file>
+        <file>icons/shuffle.svg</file>
+        <file>icons/noshuffle.svg</file>
+        <file>icons/noloop.svg</file>
+        <file>icons/loop1.svg</file>
+        <file>icons/loop.svg</file>
     </qresource>
 </RCC>

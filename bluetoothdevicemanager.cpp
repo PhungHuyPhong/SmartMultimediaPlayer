@@ -1,8 +1,4 @@
 #include "bluetoothdevicemanager.h"
-#include <QDebug>
-#include <QProcess>
-#include <QTimer>
-#include <QRegularExpression>
 
 BluetoothDeviceManager::BluetoothDeviceManager(QObject *parent)
     : QObject(parent),

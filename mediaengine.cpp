@@ -15,13 +15,46 @@ MediaEngine::MediaEngine(QObject *parent)
 }
 
 void MediaEngine::addToPlaylist(const QUrl &url) {
-    m_sources.append(url);
-    if (m_currentIndex < 0) {
-        m_currentIndex = 0;
-        m_player.setSource(m_sources[0]);
+    QString path = url.toLocalFile();
+    QFileInfo info(path);
+
+    if (!info.exists())
+        return;
+
+    QStringList newSources;
+
+    if (info.isDir()) {
+        QDir dir(path);
+        QStringList nameFilters;
+        nameFilters << "*.mp3" << "*.wav" << "*.mp4" << "*.mkv" << "*.avi";
+
+        QFileInfoList fileList = dir.entryInfoList(nameFilters, QDir::Files);
+        for (const QFileInfo &fileInfo : fileList) {
+            QUrl fileUrl = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+            newSources << fileUrl.toString();
+        }
+    } else if (info.isFile()) {
+        newSources << url.toString();
     }
+
+    // Add to existing playlist
+    for (const QString &file : newSources) {
+        m_sources.append(QUrl(file));
+    }
+
+    // If playlist was empty or newly added files, play the first new file
+    if (!newSources.isEmpty()) {
+        m_currentIndex = m_sources.size() - newSources.size();
+        m_player.setSource(m_sources[m_currentIndex]);
+        emit titleChanged();
+
+        // Auto start playing
+        m_player.play();
+    }
+
     emit playlistChanged();
 }
+
 
 void MediaEngine::play() {
     if (m_currentIndex >= 0)
@@ -41,18 +74,33 @@ void MediaEngine::playPause() {
 
 void MediaEngine::next() {
     if (m_sources.isEmpty()) return;
-    m_currentIndex = (m_currentIndex + 1) % m_sources.size();
+    if (m_shuffle) {
+        m_currentIndex = QRandomGenerator::global()->bounded(m_sources.size());
+    } else {
+        m_currentIndex++;
+        if (m_currentIndex >= m_sources.size()) {
+            if (m_loopAll) {
+                m_currentIndex = 0;
+            } else {
+                m_currentIndex = m_sources.size() - 1;
+                return;
+            }
+        }
+    }
     m_player.setSource(m_sources[m_currentIndex]);
     m_player.play();
     emit currentIndexChanged();
+    emit titleChanged();
 }
 
 void MediaEngine::previous() {
     if (m_sources.isEmpty()) return;
     m_currentIndex = (m_currentIndex - 1 + m_sources.size()) % m_sources.size();
+
     m_player.setSource(m_sources[m_currentIndex]);
     m_player.play();
     emit currentIndexChanged();
+    emit titleChanged();
 }
 
 QStringList MediaEngine::playlist() const {
@@ -72,6 +120,7 @@ void MediaEngine::setCurrentIndex(int index) {
     m_player.setSource(m_sources[m_currentIndex]);
     m_player.play();
     emit currentIndexChanged();
+    emit titleChanged();
 }
 
 qint64 MediaEngine::duration() const {
@@ -108,8 +157,16 @@ void MediaEngine::onDurationChanged(qint64) {
     emit durationChanged();
 }
 
-void MediaEngine::onStateChanged(QMediaPlayer::PlaybackState) {
+void MediaEngine::onStateChanged(QMediaPlayer::PlaybackState state) {
     emit playingChanged();
+    if (state == QMediaPlayer::StoppedState) {
+        if (m_loopOne) {
+            m_player.setSource(m_sources[m_currentIndex]);
+            m_player.play();
+        } else if (m_loopAll || m_shuffle) {
+            next();
+        }
+    }
 }
 
 bool MediaEngine::isMuted() const {
@@ -129,4 +186,32 @@ void MediaEngine::toggleMute() {
 
 QObject* MediaEngine::videoSink() const {
     return m_videoSink;
+}
+
+QString MediaEngine::title() const {
+    if (m_currentIndex >= 0 && m_currentIndex < m_sources.size()) {
+        return m_sources[m_currentIndex].fileName();
+    }
+    return QString();
+}
+bool MediaEngine::isLoopOne() const { return m_loopOne; }
+void MediaEngine::setLoopOne(bool l) {
+    if (m_loopOne != l) {
+        m_loopOne = l;
+        emit loopOneChanged();
+    }
+}
+bool MediaEngine::isLoopAll() const { return m_loopAll; }
+void MediaEngine::setLoopAll(bool l) {
+    if (m_loopAll != l) {
+        m_loopAll = l;
+        emit loopAllChanged();
+    }
+}
+bool MediaEngine::isShuffle() const { return m_shuffle; }
+void MediaEngine::setShuffle(bool s) {
+    if (m_shuffle != s) {
+        m_shuffle = s;
+        emit shuffleChanged();
+    }
 }
