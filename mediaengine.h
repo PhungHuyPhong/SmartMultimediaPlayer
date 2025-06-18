@@ -27,10 +27,12 @@ class MediaEngine : public QObject {
     Q_PROPERTY(bool loopOne READ isLoopOne WRITE setLoopOne NOTIFY loopOneChanged)
     Q_PROPERTY(bool loopAll READ isLoopAll WRITE setLoopAll NOTIFY loopAllChanged)
     Q_PROPERTY(bool shuffle READ isShuffle WRITE setShuffle NOTIFY shuffleChanged)
+    Q_PROPERTY(QVideoSink* videoSink READ videoSink WRITE setVideoSink NOTIFY videoSinkChanged)
+    Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY hasVideoChanged)
 
 public:
     explicit MediaEngine(QObject *parent = nullptr);
-    QObject* videoSink() const;
+    QVideoSink *videoSink() const { return m_videoSink; }
     Q_INVOKABLE void addToPlaylist(const QUrl &url);
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
@@ -57,6 +59,8 @@ public:
     bool isLoopOne() const;
     bool isLoopAll() const;
     bool isShuffle() const;
+    bool hasVideo() const;
+    void setVideoSink(QVideoSink *sink);
 
 signals:
     void playlistChanged();
@@ -70,6 +74,8 @@ signals:
     void loopOneChanged();
     void loopAllChanged();
     void shuffleChanged();
+    void hasVideoChanged();
+    void videoSinkChanged();
 
 private slots:
     void onPositionChanged(qint64 position);
@@ -79,12 +85,14 @@ private slots:
 private:
     QMediaPlayer   m_player;
     QAudioOutput*  m_audioOutput;
-    QVideoSink*    m_videoSink;
+    QVideoSink*    m_videoSink{nullptr};
     QList<QUrl>    m_sources;
     int            m_currentIndex{-1};
     bool m_loopOne{false};
     bool m_loopAll{false};
     bool m_shuffle{false};
+    bool m_hasVideo{false};
+
 };
 
 #endif // MEDIAENGINE_H

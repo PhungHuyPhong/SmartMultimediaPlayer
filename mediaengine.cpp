@@ -8,7 +8,6 @@ MediaEngine::MediaEngine(QObject *parent)
 {
     m_player.setAudioOutput(m_audioOutput);
     m_player.setVideoOutput(m_videoSink);
-    // QQmlEngine::setObjectOwnership(m_videoSink, QQmlEngine::CppOwnership);
     connect(&m_player, &QMediaPlayer::positionChanged, this, &MediaEngine::onPositionChanged);
     connect(&m_player, &QMediaPlayer::durationChanged, this, &MediaEngine::onDurationChanged);
     connect(&m_player, &QMediaPlayer::playbackStateChanged, this, &MediaEngine::onStateChanged);
@@ -46,7 +45,9 @@ void MediaEngine::addToPlaylist(const QUrl &url) {
     if (!newSources.isEmpty()) {
         m_currentIndex = m_sources.size() - newSources.size();
         m_player.setSource(m_sources[m_currentIndex]);
+        m_hasVideo = m_player.hasVideo();
         emit titleChanged();
+        emit hasVideoChanged();
 
         // Auto start playing
         m_player.play();
@@ -88,6 +89,8 @@ void MediaEngine::next() {
         }
     }
     m_player.setSource(m_sources[m_currentIndex]);
+    m_hasVideo = m_player.hasVideo();
+    emit hasVideoChanged();
     m_player.play();
     emit currentIndexChanged();
     emit titleChanged();
@@ -98,6 +101,8 @@ void MediaEngine::previous() {
     m_currentIndex = (m_currentIndex - 1 + m_sources.size()) % m_sources.size();
 
     m_player.setSource(m_sources[m_currentIndex]);
+    m_hasVideo = m_player.hasVideo();
+    emit hasVideoChanged();
     m_player.play();
     emit currentIndexChanged();
     emit titleChanged();
@@ -118,6 +123,8 @@ void MediaEngine::setCurrentIndex(int index) {
     if (index < 0 || index >= m_sources.size()) return;
     m_currentIndex = index;
     m_player.setSource(m_sources[m_currentIndex]);
+    m_hasVideo = m_player.hasVideo();
+    emit hasVideoChanged();
     m_player.play();
     emit currentIndexChanged();
     emit titleChanged();
@@ -184,8 +191,12 @@ void MediaEngine::toggleMute() {
     setMuted(!isMuted());
 }
 
-QObject* MediaEngine::videoSink() const {
-    return m_videoSink;
+// QObject* MediaEngine::videoSink() const {
+//     return m_videoSink;
+// }
+
+bool MediaEngine::hasVideo() const {
+    return m_hasVideo;
 }
 
 QString MediaEngine::title() const {
@@ -214,4 +225,11 @@ void MediaEngine::setShuffle(bool s) {
         m_shuffle = s;
         emit shuffleChanged();
     }
+}
+void MediaEngine::setVideoSink(QVideoSink *sink) {
+    if (m_videoSink == sink)
+        return;
+    m_videoSink = sink;
+    m_player.setVideoOutput(m_videoSink);
+    emit videoSinkChanged();
 }

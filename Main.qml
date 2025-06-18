@@ -11,6 +11,10 @@ Window {
     height: 600
     title: qsTr("Smart Multimedia Player")
 
+    Component.onCompleted: {
+            mEngine.videoSink = videoOutputId.videoSink
+    }
+
     FileDialog {
         id: fileDialog
         title: "Select Media Files"
@@ -125,78 +129,73 @@ Window {
         }
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.leftMargin: 0
-        anchors.rightMargin: 0
-        anchors.topMargin: 0
-        anchors.bottomMargin: 0
-        spacing: 0
-
-        // Top bar
-        Rectangle {
-            id: topBar
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            height: 40
-            color: "#333"
-            RowLayout {
-                anchors.fill: parent
-                spacing: 20
-                Menu {
-                    id: openMenu
-                    MenuItem {
-                        text: "Open Files"
-                        onTriggered: fileDialog.open()
+    // Top bar
+    Rectangle {
+        id: topBar
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 40
+        color: "#333"
+                RowLayout {
+                    anchors.fill: parent
+                    spacing: 20
+                    Menu {
+                        id: openMenu
+                        MenuItem {
+                            text: "Open Files"
+                            onTriggered: fileDialog.open()
+                        }
+                        MenuItem {
+                            text: "Open Folder"
+                            onTriggered: folderDialog.open()
+                        }
                     }
-                    MenuItem {
-                        text: "Open Folder"
-                        onTriggered: folderDialog.open()
+                    Button {
+                        text: "Open"
+                        onClicked: openMenu.open()
                     }
-                }
-                Button {
-                    text: "Open"
-                    onClicked: openMenu.open()
-                }
-                Label {
-                    id: timeLabel
-                    text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
-                    horizontalAlignment: Text.AlignHCenter
-                    Layout.fillHeight: false
-                    Layout.fillWidth: true
-                    color: "white"
-                    Layout.alignment: Qt.AlignCenter
+                    Label {
+                        id: timeLabel
+                        text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+                        horizontalAlignment: Text.AlignHCenter
+                        Layout.fillHeight: false
+                        Layout.fillWidth: true
+                        color: "white"
+                        Layout.alignment: Qt.AlignCenter
 
-                    Timer {
-                           interval: 1000
-                           running: true
-                           repeat: true
-                           onTriggered: {
-                               timeLabel.text = Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
-                           }
+                        Timer {
+                               interval: 1000
+                               running: true
+                               repeat: true
+                               onTriggered: {
+                                   timeLabel.text = Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+                               }
+                        }
                     }
-                }
 
-                Item {
-                    Layout.fillWidth: true
-                }
+                    Item {
+                        Layout.fillWidth: true
+                    }
 
-                Button {
-                    text: "Bluetooth"
-                    rightPadding: 8
-                    onClicked: bluetoothDialog.open()
+                    Button {
+                        text: "Bluetooth"
+                        rightPadding: 8
+                        onClicked: bluetoothDialog.open()
+                    }
                 }
             }
-        }
+
+
         //Title
         Rectangle{
             id: mediaTitle
+
             anchors.top: topBar.bottom
             anchors.left: parent.left
             anchors.right: parent.right
             color: "#4cd137"
-            height: 30
+           height: 30
             Label {
                 text: mEngine.title
                 horizontalAlignment: Text.AlignHCenter
@@ -208,34 +207,45 @@ Window {
         }
 
         // Video view
-        VideoOutput {
-            id: videoOutputId
+        Rectangle{
+            id: videoBackground
             anchors.top: mediaTitle.bottom
+            anchors.topMargin: 10
             anchors.left: parent.left
+            anchors.leftMargin: 10
             anchors.right: parent.right
-            height: 390
-            fillMode: VideoOutput.PreserveAspectFit
-            // visible: mEngine.hasVideo
+            anchors.rightMargin: 10
+            height: 380
+            color: "black"
+            VideoOutput {
+                id: videoOutputId
+                anchors.fill: parent
+                visible: mEngine.hasVideo
+                fillMode: VideoOutput.PreserveAspectFit
+            }
         }
 
         // Progress bar
         RowLayout {
-            id: progressBar
-            anchors.top: videoOutputId.bottom
-            anchors.topMargin: 10
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 10
-            Label { text: Qt.formatTime(new Date(mEngine.position), "mm:ss") }
-            Slider {
-                Layout.fillWidth: true
-                from: 0; to: mEngine.duration
-                value: mEngine.position
-                onMoved: mEngine.setPosition(value)
-            }
-            Label {
-                text: Qt.formatTime(new Date(mEngine.duration), "mm:ss")
+        id: progressBar
+        anchors.top: videoBackground.bottom
+        anchors.topMargin: 10
+        anchors.horizontalCenter: parent.horizontalCenter
+        spacing: 10
+        Label { text: Qt.formatTime(new Date(mEngine.position), "mm:ss") }
+        Slider {
+            height: 40
+            Layout.fillWidth: true
+            from: 0; to: mEngine.duration
+            value: mEngine.position
+            Layout.preferredWidth: 650
+            onMoved: mEngine.setPosition(value)
+        }
+        Label {
+            text: Qt.formatTime(new Date(mEngine.duration), "mm:ss")
             }
         }
+
         // Playback controls
         RowLayout {
             id: playback
@@ -340,7 +350,7 @@ Window {
                 //     onMoved: mEngine.setVolume(value)
                 // }
         //}
-    }
+
 
     // Playlist
         // ListView {
