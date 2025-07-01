@@ -181,29 +181,28 @@ Window {
                     Button {
                         text: "Bluetooth"
                         rightPadding: 8
-                        onClicked: bluetoothDialog.open()
+                        onClicked: {
+                            bluetoothDialog.open()
+                            btManager.clearDevices()
+                        }
                     }
                 }
-            }
-
+    }
 
         //Title
-        Rectangle{
-            id: mediaTitle
-
+        Label {
             anchors.top: topBar.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            color: "#4cd137"
-           height: 30
-            Label {
-                text: mEngine.title
-                horizontalAlignment: Text.AlignHCenter
-                Layout.fillHeight: false
-                Layout.fillWidth: true
-                color: "white"
-                Layout.alignment: Qt.AlignCenter
-            }
+            anchors.topMargin: 4
+            anchors.horizontalCenter: parent.horizontalCenter
+            id: mediaTitle
+            text: mEngine.title
+            horizontalAlignment: Text.AlignHCenter
+            anchors.horizontalCenterOffset: 0
+            font.pointSize: 20
+            Layout.fillHeight: false
+            Layout.fillWidth: true
+            color: "black"
+            Layout.alignment: Qt.AlignCenter
         }
 
         // Video view
@@ -220,29 +219,29 @@ Window {
             VideoOutput {
                 id: videoOutputId
                 anchors.fill: parent
-                visible: mEngine.hasVideo
+               // visible: mEngine.hasVideo
                 fillMode: VideoOutput.PreserveAspectFit
             }
         }
 
         // Progress bar
         RowLayout {
-        id: progressBar
-        anchors.top: videoBackground.bottom
-        anchors.topMargin: 10
-        anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 10
-        Label { text: Qt.formatTime(new Date(mEngine.position), "mm:ss") }
-        Slider {
-            height: 40
-            Layout.fillWidth: true
-            from: 0; to: mEngine.duration
-            value: mEngine.position
-            Layout.preferredWidth: 650
-            onMoved: mEngine.setPosition(value)
+            id: progressBar
+            anchors.top: videoBackground.bottom
+            anchors.topMargin: 10
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 10
+            Label { text: Qt.formatTime(new Date(mEngine.position), "mm:ss") }
+            Slider {
+                height: 40
+                Layout.fillWidth: true
+                from: 0; to: mEngine.duration
+                value: mEngine.position
+                Layout.preferredWidth: 680
+                onMoved: mEngine.setPosition(value)
         }
-        Label {
-            text: Qt.formatTime(new Date(mEngine.duration), "mm:ss")
+            Label {
+                text: Qt.formatTime(new Date(mEngine.duration), "mm:ss")
             }
         }
 
@@ -254,9 +253,9 @@ Window {
             spacing: 10
             RoundButton {
                 id: shuffleButton
-                implicitWidth: 60
-                implicitHeight: 60
-                radius: 30
+                implicitWidth: 50
+                implicitHeight: 50
+                radius: 25
                 palette.button: "#7f8fa6"
                 contentItem: Image {
                     source: mEngine.shuffle ? "qrc:/Icons/icons/shuffle.svg" : "qrc:/Icons/icons/noshuffle.svg"
@@ -269,9 +268,9 @@ Window {
 
             RoundButton {
                 id: prevButton
-                implicitWidth: 60
-                implicitHeight: 60
-                radius: 30
+                implicitWidth: 50
+                implicitHeight: 50
+                radius: 25
                 palette.button: "#7f8fa6"
                 contentItem: Image {
                     source: "qrc:/Icons/icons/previous.svg"
@@ -282,24 +281,24 @@ Window {
                 onClicked: mEngine.previous()
             }
             RoundButton {
-                    id: playButton
-                    Layout.preferredWidth: 80
-                    Layout.preferredHeight: 80
-                    radius: 40
-                    palette.button: "#7f8fa6"
-                    contentItem: Image {
-                        source: mEngine.playing ? "qrc:/Icons/icons/pause.svg" : "qrc:/Icons/icons/play.svg"
-                        anchors.centerIn: parent
-                        width: parent.implicitWidth * 0.5
-                        height: parent.implicitHeight * 0.5
-                    }
-                    onClicked: mEngine.playPause()
+                id: playButton
+                implicitWidth: 70
+                implicitHeight: 70
+                radius: 35
+                palette.button: "#7f8fa6"
+                contentItem: Image {
+                    source: mEngine.playing ? "qrc:/Icons/icons/pause.svg" : "qrc:/Icons/icons/play.svg"
+                    anchors.centerIn: parent
+                    width: parent.implicitWidth * 0.5
+                    height: parent.implicitHeight * 0.5
+                }
+                onClicked: mEngine.playPause()
             }
             RoundButton {
                 id: nextButton
-                Layout.preferredWidth: 60
-                Layout.preferredHeight: 60
-                radius: 30
+                implicitWidth: 50
+                implicitHeight: 50
+                radius: 25
                 palette.button: "#7f8fa6"
                 contentItem: Image {
                     source: "qrc:/Icons/icons/next.svg"
@@ -311,9 +310,9 @@ Window {
             }
             RoundButton {
                 id: loopButton
-                implicitWidth: 60
-                implicitHeight: 60
-                radius: 30
+                implicitWidth: 50
+                implicitHeight: 50
+                radius: 25
                 palette.button: "#7f8fa6"
                 contentItem: Image {
                     source: mEngine.loopOne ? "qrc:/Icons/icons/loop1.svg" :
@@ -335,37 +334,28 @@ Window {
                     }
                 }
             }
+
+
+            RoundButton {
+                id: muteButton
+                implicitWidth: 50
+                implicitHeight: 50
+                radius: 25
+                palette.button: "#7f8fa6"
+                contentItem: Image {
+                    source: mEngine.muted ? "qrc:/Icons/icons/muted.svg" : "qrc:/Icons/icons/volume.svg"
+                    anchors.centerIn: parent
+                    width: parent.implicitWidth * 0.5
+                    height: parent.implicitHeight * 0.5
+                }
+                onClicked: mEngine.toggleMute()
+            }
+            Slider {
+                from: 0; to: 100
+                value: mEngine.volume
+                onMoved: mEngine.setVolume(value)
+            }
         }
-                // RoundButton {
-                //     id: muteButton
-                //     Layout.preferredWidth: 60
-                //     Layout.preferredHeight: 60
-                //     radius: 30
-                //     icon.source: mEngine.muted ? "qrc:/Icons/icons/muted.svg" : "qrc:/Icons/icons/volume.svg"
-                //     onClicked: mEngine.toggleMute()
-                // }
-                // Slider {
-                //     from: 0; to: 100
-                //     value: mEngine.volume
-                //     onMoved: mEngine.setVolume(value)
-                // }
-        //}
-
-
-    // Playlist
-        // ListView {
-        //     Layout.fillWidth: true
-        //     Layout.preferredHeight: 100
-        //     model: mEngine.playlist
-        //     delegate: Text {
-        //         text: modelData
-        //         font.pixelSize: 14
-        //         color: "black"
-        //     }
-        // }
-
-
-
 
     Timer {
         interval: 1000

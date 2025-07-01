@@ -24,6 +24,7 @@ public:
     Q_INVOKABLE void startScan();
     Q_INVOKABLE void stopScan();
     Q_INVOKABLE void connectToDevice(int index);
+    Q_INVOKABLE void clearDevices();
 
     QStringList deviceNames() const;
     bool scanning() const;

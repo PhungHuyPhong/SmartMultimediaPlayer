@@ -98,6 +98,12 @@ void BluetoothDeviceManager::connectToDevice(int index)
     });
 }
 
+void BluetoothDeviceManager::clearDevices()
+{
+    m_deviceNames.clear();
+    m_devices.clear();
+}
+
 
 QStringList BluetoothDeviceManager::deviceNames() const
 {

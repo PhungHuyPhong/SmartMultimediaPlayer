@@ -89,7 +89,7 @@ private:
     QList<QUrl>    m_sources;
     int            m_currentIndex{-1};
     bool m_loopOne{false};
-    bool m_loopAll{false};
+    bool m_loopAll{true};
     bool m_shuffle{false};
     bool m_hasVideo{false};
 

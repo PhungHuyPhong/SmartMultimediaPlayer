@@ -3,6 +3,7 @@
 #include <QQmlContext>
 #include "bluetoothdevicemanager.h"
 #include "mediaengine.h"
+#include "bluetootha2dpmanager.h"
 
 int main(int argc, char *argv[])
 {
@@ -10,10 +11,13 @@ int main(int argc, char *argv[])
 
     BluetoothDeviceManager btManager;
     MediaEngine mEngine;
+    BluetoothA2DPManager a2dpManager;
+    a2dpManager.initialize();
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("btManager", &btManager);
     engine.rootContext()->setContextProperty("mEngine", &mEngine);
+    engine.rootContext()->setContextProperty("a2dpManager",&a2dpManager);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,

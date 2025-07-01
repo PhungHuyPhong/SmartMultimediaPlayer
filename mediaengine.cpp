@@ -20,42 +20,41 @@ void MediaEngine::addToPlaylist(const QUrl &url) {
     if (!info.exists())
         return;
 
-    QStringList newSources;
+    QList<QUrl> potentialSources;
 
     if (info.isDir()) {
         QDir dir(path);
         QStringList nameFilters;
         nameFilters << "*.mp3" << "*.wav" << "*.mp4" << "*.mkv" << "*.avi";
 
-        QFileInfoList fileList = dir.entryInfoList(nameFilters, QDir::Files);
+        QFileInfoList fileList = dir.entryInfoList(nameFilters, QDir::Files | QDir::NoDotAndDotDot);
         for (const QFileInfo &fileInfo : fileList) {
-            QUrl fileUrl = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
-            newSources << fileUrl.toString();
+            potentialSources.append(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
         }
     } else if (info.isFile()) {
-        newSources << url.toString();
+        potentialSources.append(url);
     }
 
-    // Add to existing playlist
-    for (const QString &file : newSources) {
-        m_sources.append(QUrl(file));
+    QList<QUrl> newSourcesToAdd;
+    for (const QUrl &sourceUrl : potentialSources) {
+        if (!m_sources.contains(sourceUrl)) {
+            newSourcesToAdd.append(sourceUrl);
+        }
     }
 
-    // If playlist was empty or newly added files, play the first new file
-    if (!newSources.isEmpty()) {
-        m_currentIndex = m_sources.size() - newSources.size();
-        m_player.setSource(m_sources[m_currentIndex]);
-        m_hasVideo = m_player.hasVideo();
-        emit titleChanged();
-        emit hasVideoChanged();
-
-        // Auto start playing
-        m_player.play();
+    if (newSourcesToAdd.isEmpty()) {
+        // Không có file mới nào để thêm, không làm gì cả.
+        return;
     }
+
+    int firstNewIndex = m_sources.size();
+    m_sources.append(newSourcesToAdd);
+
+    // Bắt đầu phát từ file đầu tiên trong danh sách vừa được thêm vào
+    setCurrentIndex(firstNewIndex);
 
     emit playlistChanged();
 }
-
 
 void MediaEngine::play() {
     if (m_currentIndex >= 0)
@@ -74,38 +73,69 @@ void MediaEngine::playPause() {
 }
 
 void MediaEngine::next() {
-    if (m_sources.isEmpty()) return;
+    if (m_sources.size() < 2) return; // Không làm gì nếu playlist quá nhỏ
+
+    int previousIndex = m_currentIndex;
+
     if (m_shuffle) {
-        m_currentIndex = QRandomGenerator::global()->bounded(m_sources.size());
+        // Chế độ shuffle: chọn một bài ngẫu nhiên khác bài hiện tại
+        do {
+            m_currentIndex = QRandomGenerator::global()->bounded(m_sources.size());
+        } while (m_currentIndex == previousIndex);
     } else {
         m_currentIndex++;
         if (m_currentIndex >= m_sources.size()) {
             if (m_loopAll) {
-                m_currentIndex = 0;
+                m_currentIndex = 0; // Quay về bài đầu tiên
             } else {
-                m_currentIndex = m_sources.size() - 1;
-                return;
+                m_currentIndex = m_sources.size() - 1; // Dừng ở bài cuối
+                return; // Không làm gì thêm nếu đã ở cuối và không lặp
             }
         }
     }
+
+    // Gửi tín hiệu để UI cập nhật index và tiêu đề TRƯỚC KHI đổi bài
+    emit currentIndexChanged();
+    emit titleChanged();
+
+    // Đặt nguồn và phát bài hát mới
     m_player.setSource(m_sources[m_currentIndex]);
     m_hasVideo = m_player.hasVideo();
     emit hasVideoChanged();
     m_player.play();
-    emit currentIndexChanged();
-    emit titleChanged();
 }
 
 void MediaEngine::previous() {
-    if (m_sources.isEmpty()) return;
-    m_currentIndex = (m_currentIndex - 1 + m_sources.size()) % m_sources.size();
+    if (m_sources.size() < 2) return; // Không làm gì nếu playlist quá nhỏ
 
+    int previousIndex = m_currentIndex;
+
+    if (m_shuffle) {
+        // Chế độ shuffle: "lùi bài" cũng sẽ phát một bài ngẫu nhiên khác
+        do {
+            m_currentIndex = QRandomGenerator::global()->bounded(m_sources.size());
+        } while (m_currentIndex == previousIndex);
+    } else {
+        m_currentIndex--;
+        if (m_currentIndex < 0) {
+            if (m_loopAll) {
+                m_currentIndex = m_sources.size() - 1; // Về bài cuối cùng
+            } else {
+                m_currentIndex = 0; // Dừng ở bài đầu tiên
+                return; // Không làm gì thêm nếu đã ở đầu và không lặp
+            }
+        }
+    }
+
+    // Gửi tín hiệu để UI cập nhật index và tiêu đề TRƯỚC KHI đổi bài
+    emit currentIndexChanged();
+    emit titleChanged();
+
+    // Đặt nguồn và phát bài hát mới
     m_player.setSource(m_sources[m_currentIndex]);
     m_hasVideo = m_player.hasVideo();
     emit hasVideoChanged();
     m_player.play();
-    emit currentIndexChanged();
-    emit titleChanged();
 }
 
 QStringList MediaEngine::playlist() const {
@@ -201,7 +231,8 @@ bool MediaEngine::hasVideo() const {
 
 QString MediaEngine::title() const {
     if (m_currentIndex >= 0 && m_currentIndex < m_sources.size()) {
-        return m_sources[m_currentIndex].fileName();
+        QFileInfo info(m_sources[m_currentIndex].toLocalFile());
+        return info.completeBaseName();
     }
     return QString();
 }
