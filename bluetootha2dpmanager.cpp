@@ -145,15 +145,6 @@ void BluetoothA2DPManager::connectToMediaPlayer(const QDBusObjectPath &path)
         qInfo() << "Device connected.";
     }
 
-    // Lấy thông tin ban đầu của bài hát
-    QDBusReply<QVariantMap> properties = m_mediaPlayerInterface->call("GetAll", m_mediaPlayerInterfaceName);
-    if(properties.isValid()){
-        qInfo() <<"Updating data";
-        updateTrackInfo(properties.value());
-        updatePlaybackStatus(properties.value());
-        qInfo() <<"Updating done";
-    }
-    else qWarning()<<"Can not get metadata";
 }
 
 void BluetoothA2DPManager::disconnectMediaPlayer(const QDBusObjectPath &path)
