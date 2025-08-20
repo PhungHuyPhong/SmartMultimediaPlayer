@@ -9,6 +9,7 @@ Window {
     visible: true
     width: 800
     height: 600
+    //visibility: "FullScreen"
     title: qsTr("Smart Multimedia Player")
 
     Component.onCompleted: {
@@ -278,7 +279,7 @@ Window {
                     width: parent.implicitWidth * 0.5
                     height: parent.implicitHeight * 0.5
                 }
-                onClicked: mEngine.previous()
+                onClicked: a2dpManager.isConnected ? a2dpManager.previous() : mEngine.previous()
             }
             RoundButton {
                 id: playButton
@@ -292,7 +293,7 @@ Window {
                     width: parent.implicitWidth * 0.5
                     height: parent.implicitHeight * 0.5
                 }
-                onClicked: mEngine.playPause()
+                onClicked: a2dpManager.isConnected ? a2dpManager.playPause() : mEngine.playPause()
             }
             RoundButton {
                 id: nextButton
@@ -306,7 +307,7 @@ Window {
                     width: parent.implicitWidth * 0.5
                     height: parent.implicitHeight * 0.5
                 }
-                onClicked: mEngine.next()
+                onClicked: a2dpManager.isConnected ? a2dpManager.next() : mEngine.next()
             }
             RoundButton {
                 id: loopButton

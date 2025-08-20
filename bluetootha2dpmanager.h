@@ -3,20 +3,18 @@
 
 #include <QObject>
 #include <QDBusConnection>
-#include <QDBusInterface>
 #include <QDBusReply>
 #include <QDebug>
 #include <QVariantMap>
-#include <QDBusArgument>
-#include <QDBusMessage>
-#include <QDBusMetaType>
 #include <QDBusObjectPath>
+#include <QDBusContext>
+
 
 // Forward declaration
 class QDBusMessage;
+class QDBusInterface;
 
-
-class BluetoothA2DPManager : public QObject
+class BluetoothA2DPManager : public QObject, protected QDBusContext
 {
     Q_OBJECT
     // Các thuộc tính này sẽ được đưa lên QML để hiển thị trên giao diện
@@ -36,6 +34,11 @@ public:
     QString trackArtist() const;
     QString trackAlbum() const;
     bool isPlaying() const;
+    Q_INVOKABLE void play();
+    Q_INVOKABLE void pause();
+    Q_INVOKABLE void playPause();
+    Q_INVOKABLE void next();
+    Q_INVOKABLE void previous();
 
 signals:
     // Tín hiệu để thông báo cho UI khi có thay đổi
@@ -53,12 +56,12 @@ private:
     void registerA2dpProfile();
     void initialDeviceCheck();
     void connectToMediaPlayer(const QDBusObjectPath &path);
-    void disconnectMediaPlayer(const QDBusObjectPath &path);
+    void disconnectMediaPlayer();
     void updateTrackInfo(const QVariantMap &properties);
     void updatePlaybackStatus(const QVariantMap &properties);
 
     QDBusConnection m_bus;
-    QDBusInterface* m_mediaPlayerInterface = nullptr; // Interface để điều khiển media player
+    QDBusObjectPath m_activePlayerPath; // Interface để điều khiển media player
 
     // Các hằng số D-Bus
     const QString m_bluezService = "org.bluez";
@@ -74,7 +77,7 @@ private:
     QString m_trackArtist;
     QString m_trackAlbum;
     bool m_isPlaying = false;
-    QDBusObjectPath m_connectedDevicePath;
+
 };
 
 #endif // BLUETOOTHA2DPMANAGER_H

@@ -4,6 +4,7 @@
 #include "bluetoothdevicemanager.h"
 #include "mediaengine.h"
 #include "bluetootha2dpmanager.h"
+#include "canbusmanager.h"
 
 int main(int argc, char *argv[])
 {
@@ -12,12 +13,15 @@ int main(int argc, char *argv[])
     BluetoothDeviceManager btManager;
     MediaEngine mEngine;
     BluetoothA2DPManager a2dpManager;
+    CanBusManager canManager;
     a2dpManager.initialize();
+    canManager.initialize("can0");
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("btManager", &btManager);
     engine.rootContext()->setContextProperty("mEngine", &mEngine);
     engine.rootContext()->setContextProperty("a2dpManager",&a2dpManager);
+    engine.rootContext()->setContextProperty("canManager",&canManager);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,

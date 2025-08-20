@@ -5,8 +5,7 @@ project(SmartMultimediaPlayer VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Core Quick QuickControls2 Svg Multimedia Bluetooth DBus)
-find_package(KF6BluezQt REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Quick Core Quick QuickControls2 Svg Multimedia Bluetooth DBus SerialBus)
 qt_standard_project_setup(REQUIRES 6.5)
 
 qt_add_executable(appSmartMultimediaPlayer
@@ -26,6 +25,7 @@ qt_add_qml_module(appSmartMultimediaPlayer
         RESOURCES Icon.qrc
         RESOURCES README.md
         SOURCES bluetootha2dpmanager.h bluetootha2dpmanager.cpp
+        SOURCES canbusmanager.h canbusmanager.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -46,7 +46,7 @@ target_link_libraries(appSmartMultimediaPlayer
     Qt6::Multimedia
     Qt6::Bluetooth
     Qt6::DBus
-    KF6::BluezQt
+    Qt6::SerialBus
 )
 
 include(GNUInstallDirs)
