@@ -63,8 +63,28 @@ void CanBusManager::readCanMessages()
         const QCanBusFrame frame = m_canDevice->readFrame();
         QCanBusFrame::FrameId frameId = frame.frameId();
         QByteArray payload = frame.payload();
-        qDebug() << "ID: " << QString::number(frameId, 16).toUpper()
-                 << " Data: " << payload.toHex().toUpper();
+        emit newSensorData(frameId, payload);
+        if ((quint32)frameId == TemperatureHumidityFrameId && payload.size() >= 4) {
+            const qint8 tempC = static_cast<qint8>(static_cast<unsigned char>(payload[0]));
+            const quint8 rhPct = static_cast<quint8>(static_cast<unsigned char>(payload[1]));
+            if (!qFuzzyCompare(m_temperature,(double)tempC)) {
+                m_temperature = tempC;
+                emit temperatureChanged();
+            }
+            qDebug() << "ID: " << QString::number(frameId, 16).toUpper()
+                     << "[CAN] T=" << static_cast<int>(tempC) << " °C, "
+                     << "RH=" << static_cast<unsigned int>(rhPct) << " % ";
+        }
+        else if ((quint32)frameId == GestureFrameId && !payload.isEmpty()) {
+            quint8 gestureId = (quint8)payload.at(0);
+            if (m_gesture != gestureId) {
+                m_gesture = gestureId;
+                emit gestureChanged(gestureId);
+            }
+            qDebug() << "ID:" << QString::number(frameId, 16).toUpper()
+                     << "Data:" << payload.toHex().toUpper();
+        }
+
     }
 }
 

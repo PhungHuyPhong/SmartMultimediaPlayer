@@ -9,7 +9,7 @@ Window {
     visible: true
     width: 800
     height: 600
-    //visibility: "FullScreen"
+    visibility: "FullScreen"
     title: qsTr("Smart Multimedia Player")
 
     Component.onCompleted: {
@@ -157,8 +157,8 @@ Window {
                         onClicked: openMenu.open()
                     }
                     Label {
-                        id: timeLabel
-                        text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+                        id: timeTempLabel
+                        text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm") + "   " + canManager.temperature.toFixed(1) + "°C"
                         horizontalAlignment: Text.AlignHCenter
                         Layout.fillHeight: false
                         Layout.fillWidth: true
@@ -170,11 +170,10 @@ Window {
                                running: true
                                repeat: true
                                onTriggered: {
-                                   timeLabel.text = Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm")
+                                   timeTempLabel.text = Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm") + "   " + canManager.temperature.toFixed(1) + "°C"
                                }
                         }
                     }
-
                     Item {
                         Layout.fillWidth: true
                     }
@@ -356,6 +355,42 @@ Window {
                 value: mEngine.volume
                 onMoved: mEngine.setVolume(value)
             }
+
+        }
+
+        Connections {
+                target: canManager
+                function onGestureChanged(gesture) {
+                    /*
+                     * Bạn cần gán gestureId cụ thể cho hành động:
+                     * 1: Bài tiếp, 2: Bài trước, 3: Play/Pause, 4: Tăng âm lượng, 5: Giảm âm lượng
+                     */
+                    if (gesture === 1) {
+                        // Qua bài mới; ưu tiên A2DP nếu đang kết nối
+                        if (a2dpManager.isConnected)
+                            a2dpManager.next();
+                        else
+                            mEngine.next();
+                    } else if (gesture === 2) {
+                        if (a2dpManager.isConnected)
+                            a2dpManager.previous();
+                        else
+                            mEngine.previous();
+                    } else if (gesture === 3) {
+                        if (a2dpManager.isConnected)
+                            a2dpManager.playPause();
+                        else
+                            mEngine.playPause();
+                    } else if (gesture === 4) {
+                        // Tăng âm lượng lên 5 đơn vị
+                        let vol = Math.min(mEngine.volume + 5, 100);
+                        mEngine.setVolume(vol);
+                    } else if (gesture === 5) {
+                        // Giảm âm lượng xuống 5 đơn vị
+                        let vol = Math.max(mEngine.volume - 5, 0);
+                        mEngine.setVolume(vol);
+                    }
+                }
         }
 
     Timer {
